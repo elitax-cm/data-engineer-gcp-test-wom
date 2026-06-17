@@ -6,20 +6,20 @@ Durante la revisión de la solución original se identificaron los siguientes ri
 
 ### CI/CD
 
-* Credencial GCP expuesta directamente en el pipeline.
-* Despliegue a un único ambiente.
-* Ausencia de validaciones previas antes del despliegue.
+* Credencial GCP se encuentra expuesta directamente en el pipiline
+* Despliegue solo fue realizado a un unico ambiente
+* No se realizaron validaciones antes del despliegue
 
 ### Airflow
 
-* Uso de XCom para transportar grandes volúmenes de información.
-* Ejecución de consultas BigQuery durante la carga del DAG (Top-Level Code).
+* Se uso Xcom para transportar grandes volumenes de informacion
+* se detectaron consultas Bigquery durante la carga del DAG
 * Inserción de registros utilizando procesamiento fila a fila.
 
 ### BigQuery
 
-* MERGE ejecutado sobre una tabla histórica particionada con alto volumen de datos.
-* Riesgo de incremento significativo en costos por lecturas innecesarias.
+* Se utilizo MERGE sobre una tabla historica particionada con altos vol de datos
+* Se detectó un alto costo por lecturas innecesarias
 * Falta de estrategia para manejar datos tardíos (Late Arriving Data).
 
 ---
@@ -30,10 +30,10 @@ Se implementó una estrategia de despliegue separada para ambientes Dev y Prod.
 
 Principales mejoras:
 
-* Validación de sintaxis del DAG antes de cualquier despliegue.
-* Uso de variables protegidas para las credenciales GCP.
-* Separación de buckets por ambiente.
-* Despliegue manual para Producción.
+* Se hizo una validacion de la sintaxis  del DAG antes de un despliegue
+* Se usaron variables protegidas para las credenciales de GCP
+* Se separaron los buckets por ambiente
+* Se hizo un despliegue manual para Produccion
 
 ---
 
@@ -43,10 +43,10 @@ El DAG fue rediseñado para que Airflow actúe únicamente como orquestador.
 
 Mejoras implementadas:
 
-* Eliminación de XCom para cargas masivas.
-* Eliminación de consultas ejecutadas durante la carga del DAG.
-* Uso de macros nativas de Airflow mediante `{{ ds }}`.
-* Flujo idempotente basado en fecha de ejecución.
+* Se elimina XCom para las cargas masivas
+* Se eliminan las consultas ejecutadas durante la carga DAG
+* Se usaron macros nativas de Airflow mediante `{{ ds }}`.
+* Se hizo un flujo idemponente en base a las fechas de ejecucion
 
 ---
 
