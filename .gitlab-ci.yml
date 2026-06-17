@@ -1,0 +1,46 @@
+stages:
+  - validar
+  - desplegar
+
+variables:
+  PROJECT_ID_DEV: "mi-proyecto-dev"
+  PROJECT_ID_PROD: "mi-proyecto-prod"
+  COMPOSER_BUCKET_DEV: "gs://us-central1-my-composer-dev-bucket/dags/"
+  COMPOSER_BUCKET_PROD: "gs://us-central1-my-composer-prod-bucket/dags/"
+
+validar_dag:
+  stage: validar
+  image: python:3.11
+  script:
+    - pip install apache-airflow apache-airflow-providers-google
+    - python -m py_compile dags/extract_pipeline.py
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "develop"'
+    - if: '$CI_COMMIT_BRANCH == "main"'
+
+desplegar_dev:
+  stage: desplegar
+  image: google/cloud-sdk:latest
+  script:
+    - echo "$GCP_KEY_DEV" > /tmp/gcp_key.json
+    - gcloud auth activate-service-account --key-file=/tmp/gcp_key.json
+    - gcloud config set project "$PROJECT_ID_DEV"
+    - gsutil -m rsync -r dags/ "$COMPOSER_BUCKET_DEV"
+  environment:
+    name: dev
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "develop"'
+
+desplegar_prod:
+  stage: desplegar
+  image: google/cloud-sdk:latest
+  script:
+    - echo "$GCP_KEY_PROD" > /tmp/gcp_key.json
+    - gcloud auth activate-service-account --key-file=/tmp/gcp_key.json
+    - gcloud config set project "$PROJECT_ID_PROD"
+    - gsutil -m rsync -r dags/ "$COMPOSER_BUCKET_PROD"
+  environment:
+    name: prod
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+      when: manual
